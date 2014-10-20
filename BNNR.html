@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>BNNR test</title>
+  <meta name="description" content="BNNR test">
+  <script type="text/javascript" src="BNNR.js"></script>
+  <!--link rel="stylesheet" href="css/styles.css?v=1.0"-->
+  <!--[if lt IE 9]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <style type="text/css">
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+  }
+  h1 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .wrapContainer{
+    display: inline-block;
+    width: 310px;
+    vertical-align: top;
+  }
+  .testContainer {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background: white;
+    border: 1px solid #3366CC;
+    width: 300px;
+    height: 250px;
+    -webkit-transform:translateZ(0);
+    -moz-transform:translateZ(0);
+    transform:translateZ(0);
+  }
+  pre {
+    padding: 3px;
+    position: absolute;
+    font-family: Courier, Monaco, sans-serif;
+    font-size: 10px;
+    color: #666; 
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    word-break: normal;
+  }
+  input[Type="button"]{
+    margin-top: 1px;
+    margin-bottom: 1px;
+    font-size: 10px;
+    border-radius: 4px;
+    background-color: #3366CC;
+    color:#FFF;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+    border: 1px solid #3366CC;
+  }
+  .particle {
+    display: block;
+    position: absolute;
+    background: url(data:image/png;base64,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) no-repeat;
+    width: 129px;
+    height: 52px;
+  }
+  </style>
+</head>
+<body>
+
+<div class="wrapContainer">
+<h1>Two tweens on the same object</h1>
+<div class="testContainer">
+<pre>
+BNNR.tweenTo(elem, "translateY", 150, 0, 2, {ease:"bounce", delay:3});
+BNNR.tweenTo(elem, "translateY", 0, 150, 2, {ease:"expo"});
+</pre>
+  <div id="p1" class="particle"></div>
+</div>
+<div><input onclick="f1('p1')" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Multiple params &amp; onComplete function</h1>
+<div class="testContainer">
+<pre>BNNR.tweenTo(elem,["translateX", "translateY", "rotate", "scale"],[0,0,0,1],[50,50,180,2],2,{ease:"elastic",delay:0.5, onComplete:function(){
+  BNNR.tweenTo(elem,["translateX", "translateY", "rotate", "scale"],[50,50,180,2],[0,0,0,1],2,{ease:"elastic",delay:2});
+}});
+</pre>
+  <div id="p2" class="particle"></div>
+</div>
+<div><input onclick="f2('p2')" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Infinite loop</h1>
+<div class="testContainer">
+<pre>BNNR.tweenTo(elem, "translateY", 150, 0, 2, {ease:"bounce", loop:0, delay:1});</pre>
+  <div id="p3" class="particle"></div>
+</div>
+<div><input onclick="f3('p3')" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Infinite loop with yoyo = true</h1>
+<div class="testContainer">
+<pre>BNNR.tweenTo(elem, "translateY", 150, 0, 2, {ease:"bounce", loop:0, yoyo:true, delay:1});</pre>
+<div id="p4" class="particle"></div>
+</div>
+<div><input onclick="f4('p4')" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Loop 3 times</h1>
+<div class="testContainer">
+<pre>BNNR.tweenTo(elem, "translateY", 150, 0, 2, {ease:"bounce", loop:3, delay:1});</pre>
+  <div id="p5" class="particle"></div>
+</div>
+<div><input onclick="f5('p5')" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Use of the then() method to sequence tweens</h1>
+<div class="testContainer">
+<pre>
+BNNR.xTo(elem,240,2).then(
+  BNNR.yTo(elem,150,1, {autoPlay:false})
+).then(
+  BNNR.xTo(elem,0,2, {autoPlay:false})
+).then(
+  BNNR.yTo(elem,0,1, {autoPlay:false})
+)
+</pre>
+  <div id="p6" class="particle"></div>
+</div>
+<div><input onclick="f6('p6')" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Bezier Tween</h1>
+<div class="testContainer">
+<pre>
+BNNR.bezierTo(elem, {x:0,y:0}, {x:240,y:150}, [{x:80,y:250},{x:180,y:0}], 4, {ease:"bounce"}); 
+</pre>
+  <div id="p7" class="particle"></div>
+</div>
+<div><input onclick="f7('p7')" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Color Tween</h1>
+<div id="colorContainer" class="testContainer">
+<pre>
+BNNR.bgColorTo(elem, '#FFFFFF', '#00FF00', 1); 
+BNNR.bgBrightnessTo(elem, '#00FF00', 0.8, 1); 
+BNNR.bgDarknessTo(elem, '#00FF00', 0.8, 1); 
+</pre>
+</div>
+<div>
+<input onclick="fcolor('colorContainer')" type="button" value="bgColorTo"/>
+<input onclick="fbright('colorContainer')" type="button" value="bgBrightnessTo"/>
+<input onclick="fdark('colorContainer')" type="button" value="bgDarknessTo"/>
+</div>
+</div>
+
+<div class="wrapContainer">
+<h1>Shortcut methods</h1>
+<div class="testContainer">
+<pre>
+ 
+</pre>
+  <div id="p8" class="particle"></div>
+</div>
+<div>
+BNNR.<select id="shortcuts">
+<option>fadeTo</option>
+<option>xTo</option>
+<option>yTo</option>
+<option>scaleTo</option>
+<option>rotateTo</option>
+<option>xSkewTo</option>
+<option>ySkewTo</option>
+</select>
+(element,<input id="shortcutVal" type="text" size="5" value="0" />,2);
+<input onclick="f8('p8',document.getElementById('shortcuts').value,document.getElementById('shortcutVal').value)" type="button" value="PLAY"/><br/>
+<input onclick="BNNR.moveTo('p8',240,150,1);" type="button" value="BNNR.moveTo(element,240,150,1);" /><br/>
+<input onclick="BNNR.fadeIn('p8');" type="button" value="BNNR.fadeIn(element);" /><br/>
+<input onclick="BNNR.fadeOut('p8');" type="button" value="BNNR.fadeOut(element);" /></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Multiple tweens with stagger</h1>
+<div class="testContainer">
+<pre>
+BNNR.multipleTo(['particle1','particle2','particle3','particle4'], "translateX", 0, 240, 1, {ease:"out", delay:0.5}, 1);
+</pre>
+<div id="particle1" class="particle"></div>
+<div id="particle2" class="particle"></div>
+<div id="particle3" class="particle"></div>
+<div id="particle4" class="particle"></div>
+</div>
+<div><input onclick="f9()" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Relative values like "current", "+=100" or "-=80"</h1>
+<div class="testContainer">
+<pre>
+BNNR.setTo(elem,["translateX","translateY", "scale"],[125,-100,0.5]);
+BNNR.yTo(elem,"+=245",0.7, {ease:"bounce", delay:1}).then(BNNR.tweenTo(elem,["translateY","opacity","scale"],["current",1,"current"],["-=245",0,"+=1.2"],1.5,{ease:"strongOut", delay:1, autoPlay:false}));
+</pre>
+  <div id="p10" class="particle"></div>
+</div>
+<div><input onclick="f10('p10')" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Spin</h1>
+<div class="testContainer">
+<pre>
+BNNR.Spin(elem,-5);
+</pre>
+  <div id="p11" class="particle"></div>
+</div>
+<div><input onclick="f11('p11')" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Follow mouse</h1>
+<div id="c12" class="testContainer">
+<pre>
+BNNR.Mouse.register(parent);
+BNNR.Mouse.setOffset(-30,-50);
+BNNR.Follow(elem, BNNR.Mouse.position, 0.2, 0.8, false);
+</pre>
+  <div id="p12" class="particle"></div>
+</div>
+<div><input onclick="f12('c12','p12')" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Oscillate</h1>
+<div class="testContainer">
+<pre>
+BNNR.setTo(elem,["translateX","translateY"],[125,75]);
+BNNR.Oscillate(elem,"scale",0.5,1.5,50);
+BNNR.Oscillate(elem,"rotate",-20,20,80);
+</pre>
+  <div id="p13" class="particle"></div>
+</div>
+<div><input onclick="f13('p13')" type="button" value="PLAY"/></div>
+</div>
+
+<div class="wrapContainer">
+<h1>Control methods</h1>
+<div class="testContainer">
+<pre>
+var myTween = BNNR.tweenTo(elem, ["translateX", "translateY", "scale", "opacity", "rotate"], [0,0,1,1,0], [100,100,2,0.4,180], 7, {ease: "backIn bounceOut", autoPlay:false});
+</pre>
+  <div id="p14" class="particle"></div>
+</div>
+<div>
+  <input onclick="f14(this.value)" type="button" value=".start()"/>
+  <input onclick="f14(this.value)" type="button" value=".stop()"/>
+  <input onclick="f14(this.value)" type="button" value=".pause()"/>
+  <input onclick="f14(this.value)" type="button" value=".resume()"/>
+  <input onclick="f14(this.value)" type="button" value=".toggle()"/>
+  <input onclick="f14(this.value)" type="button" value=".yoyo()"/>
+  <input onclick="f14(this.value)" type="button" value=".prevFrame()"/>
+  <input onclick="f14(this.value)" type="button" value=".seek(3.5)"/>
+  <input onclick="f14(this.value)" type="button" value=".nextFrame()"/>
+</div>
+</div>
+
+<div class="wrapContainer">
+<h1>Timeline</h1>
+<div class="testContainer">
+<pre>
+var channels = [
+function(){
+BNNR.setTo(['myText','myImage'],'opacity',0);
+BNNR.setTo(['myText','myImage'],['translateX','translateY'], [120,120]);
+BNNR.setTo('myImage', 'scale', 3);
+},
+0.5,
+BNNR.tweenTo('myText',['opacity', 'translateY'], [0,-200], [1,130], 2,{ease:'bounce', autoPlay:false}),
+2,
+BNNR.tweenTo('myText',['scale', 'opacity'],[1,1],[3,0], 1, {ease:'expo', autoPlay:false}),
+0.5,
+BNNR.tweenTo('myImage',['scale', 'opacity'],[1,0],[3,1], 1, {ease:'swing', autoPlay:false})
+]
+var tl = new BNNR.Timeline(channels,{onComplete:function(){console.log('Timeline onComplete!')}});
+</pre>
+  <div id="myImage" style="display:block;position:absolute;"><h1>Hello World!</h1></div>
+  <div id="myText" class="particle"></div>
+</div>
+  <input onclick="f15(this.value)" type="button" value=".start()"/>
+  <input onclick="f15(this.value)" type="button" value=".stop()"/>
+  <input onclick="f15(this.value)" type="button" value=".pause()"/>
+  <input onclick="f15(this.value)" type="button" value=".resume()"/>
+  <input onclick="f15(this.value)" type="button" value=".toggle()"/>
+  <input onclick="f15(this.value)" type="button" value=".rewind()"/>
+  <input onclick="f15(this.value)" type="button" value=".fforward()"/>
+</div>
+
+<script type="text/javascript">
+function f1(elem){
+  BNNR.tweenTo(elem, "translateY", 150, 0, 2, {ease:"bounce", delay:3});
+  BNNR.tweenTo(elem, "translateY", 0, 150, 2, {ease:"expo"});
+}
+function f2(elem){
+ BNNR.tweenTo(elem,["translateX", "translateY", "rotate", "scale"],[0,0,0,1],[50,50,180,2],2,{ease:"elastic",delay:0.5, onComplete:function(){
+    BNNR.tweenTo(elem,["translateX", "translateY", "rotate", "scale"],[50,50,180,2],[0,0,0,1],2,{ease:"elastic",delay:2});
+ }});
+}
+function f3(elem){
+  BNNR.tweenTo(elem, "translateY", 150, 0, 2, {ease:"bounce", loop:0, delay:1});
+}
+function f4(elem){
+  BNNR.tweenTo(elem, "translateY", 150, 0, 2, {ease:"bounce", loop:0, yoyo:true, delay:1});
+}
+function f5(elem){
+  BNNR.tweenTo(elem, "translateY", 150, 0, 2, {ease:"bounce", loop:3, delay:1});
+}
+function f6(elem){
+  BNNR.xTo(elem,240,2).then(
+    BNNR.yTo(elem,150,1, {autoPlay:false})
+  ).then(
+    BNNR.xTo(elem,0,2, {autoPlay:false})
+  ).then(
+    BNNR.yTo(elem,0,1, {autoPlay:false})
+  )
+}
+function f7(elem){
+ BNNR.bezierTo(elem, {x:0,y:0}, {x:240,y:150}, [{x:80,y:250},{x:180,y:0}], 4, {ease:"bounce"}); 
+}
+function fcolor(elem){
+  BNNR.bgColorTo(elem, '#FFFFFF', '#3366CC', 1); 
+}
+function fbright(elem){
+  BNNR.bgBrightnessTo(elem, '#3366CC', 0.8, 1); 
+}
+function fdark(elem){
+  BNNR.bgDarknessTo(elem, '#3366CC', 0.8, 1); 
+}
+function f8(elem,i,v){
+  BNNR[i](elem,parseFloat(v),2);
+}
+function f9(){
+  BNNR.multipleTo(['particle1','particle2','particle3','particle4'], "translateX", 0, 240, 1, {ease:"out", delay:0.5}, 1);
+}
+function f10(elem){
+  BNNR.setTo(elem,["translateX","translateY", "scale"],[125,-100,0.5]);
+  BNNR.yTo(elem,"+=245",0.7, {ease:"bounce", delay:1}).then(BNNR.tweenTo(elem,["translateY","opacity","scale"],["current",1,"current"],["-=245",0,"+=1.2"],1.5,{ease:"strongOut", delay:1, autoPlay:false}));
+}
+function f11(elem){
+  BNNR.Spin(elem,-5);
+}
+function f12(parent,elem){
+  BNNR.Mouse.register(parent);
+  BNNR.Mouse.setOffset(-30,-50);
+  BNNR.Follow(elem, BNNR.Mouse.position, 0.2, 0.8, false);
+}
+function f13(elem){
+  BNNR.setTo(elem,["translateX","translateY"],[125,75]);
+  BNNR.Oscillate(elem,"scale",0.5,1.5,50);
+  BNNR.Oscillate(elem,"rotate",-20,20,80);
+}
+//-----
+var tween = BNNR.tweenTo('p14', ["translateX","translateY","scale","opacity","rotate"],[0,0,1,1,0],[100,100,2,0.4,180],7,{ease:"backIn bounceOut",autoPlay:false});
+tween.addListener("onComplete", function(){console.log("onComplete event dispatched")});
+function f14(foo){
+  switch(foo){
+    case ".start()":
+    tween.start();
+    break;
+    case ".stop()":
+    tween.stop();
+    break;
+    case ".toggle()":
+    tween.toggle();
+    break;
+    case ".pause()":
+    tween.pause();
+    break;
+    case ".resume()":
+    tween.resume();
+    break;
+    case ".yoyo()":
+    tween.yoyo();
+    break;
+    case ".prevFrame()":
+    tween.prevFrame();
+    break;
+    case ".nextFrame()":
+    tween.nextFrame();
+    break;
+    case ".seek(3.5)":
+    tween.seek(3.5);
+    break;
+  }
+}
+
+var channels = [
+  function(){
+    BNNR.setTo(['myText','myImage'],'opacity',0);
+    BNNR.setTo(['myText','myImage'],['translateX','translateY'], [120,120]);
+    BNNR.setTo('myImage', 'scale', 3);
+  },
+  0.5,
+  BNNR.tweenTo('myText',['opacity', 'translateY'], [0,-200], [1,130], 2,{ease:'bounce', autoPlay:false}),
+  2,
+  BNNR.tweenTo('myText',['scale', 'opacity'],[1,1],[3,0], 1, {ease:'expo', autoPlay:false}),
+  0.5,
+  BNNR.tweenTo('myImage',['scale', 'opacity'],[1,0],[3,1], 1, {ease:'swing', autoPlay:false})
+]
+var tl = new BNNR.Timeline(channels,{onComplete:function(){console.log('Timeline onComplete!')}});
+function f15(foo){
+  switch(foo){
+    case ".start()":
+    tl.start();
+    break;
+    case ".stop()":
+    tl.stop();
+    break;
+    case ".toggle()":
+    tl.toggle();
+    break;
+    case ".pause()":
+    tl.pause();
+    break;
+    case ".resume()":
+    tl.resume();
+    break;
+    case ".rewind()":
+    tl.rewind();
+    break;
+    case ".fforward()":
+    tl.fforward();
+    break;
+  }
+}
+//----
+  /*TEST BEZIER 
+  
+  id,from,to,control,duration,params*/
+  /*TEST Ticker, Timer, Follow, Spin, Orbit
+  var obj = {x:200,y:150};
+  //BNNR.Orbit("test", obj, 50, 2);
+  BNNR.Follow("test", obj, 0.1, 0, true);
+  //BNNR.Spin("test", 5);
+  new BNNR.Timer(function(){
+    obj.x = BNNR.Math.random(800);
+    obj.y = BNNR.Math.random(600);
+  }, 1, 25).start();*/
+  /*TEST oscillate 
+  BNNR.Oscillate("test", "translateX", 0, 300, 100, 0);*/
+  //BNNR.Vibrate("test", "scale", 0.5, 3.2);
+  //BNNR.Brownian("test", "translateX", 3);
+  //BNNR.Brownian("test", "translateY", 3);
+  //BNNR.Swarm("test",{x:200,y:150},10);
+  //BNNR.Ballistic("test",4,8);
+//id,prop,from,to,duration,params
+ //var t = new BNNR.Tween("test", "translateX", 0, 500, 1.5, {ease:"bounce", delay:2, loop:0, yoyo:true, onComplete:function(){console.log("complete")}}).start();
+  //BNNR.Mouse.register("container");
+  //BNNR.Follow("test", BNNR.Mouse.position, 0.1);
+  //BNNR.tweenTo("test", "translateX", 0, 600, 4, {ease:"mirror expo"});
+  /*Simple particle example
+  var particles = BNNR.getParticles(100,true,"smallParticle","container");
+  var myParticleSystem = new BNNR.ParticleSystem(particles, function(){
+    this.css.translateX += this.data.vel.x;
+    this.css.translateY += this.data.vel.y;
+  }, function(){
+    if(this.css.translateX < 0 || this.css.translateX > 800) this.data.vel.x *= -1;
+    if(this.css.translateY < 0 || this.css.translateY > 600) this.data.vel.y *= -1;
+  }, function(){
+    this.data.vel = {x:BNNR.Math.random(-2,2),y:BNNR.Math.random(-2,2)};
+    this.friction = 0.98;
+    this.setCSS("translateX", BNNR.Math.random(100,700));
+    this.setCSS("translateY", BNNR.Math.random(100,500));
+  }).start();
+  BNNR.Spin("test");*/
+  /**/
+  /*BNNR.rotateTo("test",60,2,{delay:-0.5,onComplete:function(){
+    BNNR.fadeOut("test", 3, {delay:1});
+  }});*/
+ //BNNR.xTo("test", 600, 0.5, {ease:"snap"});
+ //BNNR.fadeTo('test', 0.2, 0.5);
+</script>
+</body>
+</html>
