@@ -750,7 +750,7 @@ eu.Math = {
 	rotateTo : function(x,y){return Math.atan2(y, x)}
 }
 //Renderings and particles
-eu.update = function(elem, valueObj){
+eu.setCSS = function(elem, valueObj){
 	//if it is NodeList let's apply it to each item
 	if(elem.item){
 		var i=0, l = elem.length;
@@ -840,7 +840,7 @@ eu.Particle = function(query, params){
 	this.css = {};//where we save the raw css transformation
 	this.data = {};//a placeholder to save any other data
 	this.view = null;//the view that represents the particle
-	this._set = (params && params.setFunction)?params.setFunction:eu.update;//a function to update the view
+	this._set = (params && params.setFunction)?params.setFunction:eu.setCSS;//a function to update the view
 	this._get = (params && params.getFunction)?params.getFunction:eu.getCSS;//a function that returns CSS information of the view (even if the data is not saved in the css object)
 	if(typeof query == 'string'){
 		this.view = document.getElementById(query);
@@ -1576,56 +1576,6 @@ eu.SpriteAnimation = function (id,count,fps,size,isHorizontal,duration,params) {
 		}
 		++_fx.i;
 	},duration,params).setTarget(_fx.p);
-}
-//Mouse interaction
-eu.Mouse = {
-	register : function(DOMElement){
-		var t = (typeof DOMElement == "string")?document.getElementById(DOMElement):DOMElement;
-		document.onmousemove = function(event){
-			event = event || window.event;
-			var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
-			var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
-			eu.Mouse.position.x = event.clientX + scrollLeft - t.offsetLeft + eu.Mouse._of.x;
-			eu.Mouse.position.y = event.clientY + scrollTop  - t.offsetTop  + eu.Mouse._of.y;
-		}
-		t.onmousedown = function(event){
-			eu.Mouse.isDown = true;
-			document.onmouseup = function(event){
-				eu.Mouse.isDown = false;
-				this.onmouseup = null;
-			}
-		}
-	},
-	_of : {x:0,y:0},//mouse offset
-	setOffset : function(x,y){
-		this._of.x = x;
-		this._of.y = y;
-	},
-	isDown : false,
-	position : {x:0,y:0}
-}
-//STATE MACHINE
-eu.StateMachine = function(){
-	this._state = null;
-	this._sObj = {};
-}
-eu.StateMachine.prototype = {
-	add : function(name,enterFn,leaveFn){
-		this._sObj[name] = {
-			enter : enterFn || function(){},
-			leave : leaveFn || function(){}
-		}
-		return this;
-	},
-	set : function(state){
-		if(!this._sObj[state]){
-			throw "BNNR: " + state + " does not exist.";
-		}
-		if(this._state) this._sObj[this._state].leave();
-		this._state = state;
-		this._sObj[this._state].enter();
-		return this;
-	}
 }
 return eu;
 }();
