@@ -200,8 +200,29 @@ eu.EventDispatcher.prototype = {
 		}
 	}
 }
+eu.IPlayer = function(){
+	eu.EventDispatcher.call(this);	
+}
+eu.IPlayer.prototype = {
+	onComplete : function(){},
+	onStop     : function(){},
+	onStart    : function(){},
+	start : function(){return this;},
+	stop : function(){return this;},
+	play : function(){return this;},
+	toggle : function(){return this;},
+	pause : function(){return this;},
+	rewind : function(){return this;},
+	fforward : function(){return this;},
+	currentFrame : function(){return this;},
+	totalDuration : function(){return this;},
+	isPlaying : function(){return this;},
+	setPosition : function(val){return this;},
+	seek : function(val){return this;}
+}
+eu.extend(eu.EventDispatcher,eu.IPlayer);
 eu.AbstractTicker = function(){
-	eu.EventDispatcher.call(this);
+	eu.IPlayer.call(this);
 	this._creationFrame = BNNR_TICKER.currentFrame;
 	this._isPlaying = false;
 }
@@ -249,9 +270,13 @@ eu.AbstractTicker.prototype = {
 		this._deactivate();
 		this.dispatchEvent("onStart");
 		return this;
+	},
+	destroy : function(){
+		//this._deactivate();
+		//this = null;
 	}
 }
-eu.extend(eu.EventDispatcher, eu.AbstractTicker);
+eu.extend(eu.IPlayer, eu.AbstractTicker);
 eu.Delay = function(duration,fn,args,scope){
 	eu.AbstractTicker.call(this);
 	this._fn = fn;
@@ -279,7 +304,7 @@ eu.Delay.prototype = {
 }
 eu.extend(eu.AbstractTicker, eu.Delay);
 eu.Ticker = function(fn,duration,params){
-	eu.EventDispatcher.call(this);
+	eu.AbstractTicker.call(this);
 	this._fn = fn;
 	this._time = 1;
 	this._duration = eu.Math.getFrames(duration)||0;
@@ -381,55 +406,52 @@ eu.Timer = function(fn, rate, iterations, params){
 eu.defaultEase = function(t){return t * ( 2 - t );};
 eu.Tween = function(id,prop,from,to,duration,params){
 	eu.Ticker.call(this,undefined,duration,params);
-	this.tw = {
-		id:id,
-		type:"tween",
-		props:eu.getAsArray(prop),
-		to:eu.getAsArray(to),
-		fr:eu.getAsArray(from),
-		ch:[],
-		e:eu.defaultEase,
-		loop:-1,
-		yoyo:false,
-		repeat:0,
-		then:undefined,
-		pos:0,
-		dir:1,
-		initialized:false
-	}
+	this.id=id;
+	this.type="tween";
+	this.props=eu.getAsArray(prop);
+	this.to=eu.getAsArray(to);
+	this.fr=eu.getAsArray(from);
+	this.ch=[];
+	this.e=eu.defaultEase;
+	this.loop=-1;
+	this.yoyo=false;
+	this.repeat=0;
+	this._then=undefined;
+	this.pos=0;
+	this.dir=1;
+	this.initialized=false;
 	if(params){
 		if(params.ease){
 			if(typeof params.ease === 'string'){
 				if(eu.Ease){
-					this.tw.e = eu.Ease.getEase(params.ease);
+					this.e = eu.Ease.getEase(params.ease);
 				}
 			}else{
-				this.tw.e = params.ease;
+				this.e = params.ease;
 			}
 		}
-		this.tw.loop = (params.loop != undefined)?params.loop:-1;
-		this.tw.yoyo = (params.yoyo == undefined)?false:params.yoyo;
-		if(this.tw.yoyo){
-			this.tw.loop = (this.tw.loop == -1)?0:this.tw.loop;
+		this.loop = (params.loop != undefined)?params.loop:-1;
+		this.yoyo = (params.yoyo == undefined)?false:params.yoyo;
+		if(this.yoyo){
+			this.loop = (this.loop == -1)?0:this.loop;
 		}
 	}
-	//this.setTarget(eu._twUtls.gTP(this.tw.id, this.tw.props, this.tw.fr, true));
-	var particle = eu.getParticle(this.tw.id);
-	particle.addProperties(this.tw.props, this.tw.fr);
+	var particle = eu.getParticle(this.id);
+	particle.addProperties(this.props, this.fr);
 	this.setTarget(particle);
-	this.tw.repeat = (this.tw.loop > 0)?this.tw.loop:-1;
-	this.tw.u = function(t,c,b){
+	this.repeat = (this.loop > 0)?this.loop:-1;
+	this.u = function(t,c,b){
 		return this.e(t) * c + b;
 	}
 	return this;
 }
 eu.Tween.prototype = {
 	_run : function(){
-		this._time += this.tw.dir;
-		var l = this.tw.props.length, i = 0, o = this.target.css, p = this.tw.props;
-		this.tw.pos = eu.Math.fixProgress(this._time/this._duration, false);
+		this._time += this.dir;
+		var l = this.props.length, i = 0, o = this.target.css, p = this.props;
+		this.pos = eu.Math.fixProgress(this._time/this._duration, false);
 		while(l){
-			o[p[i]] = this.tw.u(this.tw.pos, this.tw.ch[i], this.tw.fr[i]);
+			o[p[i]] = this.u(this.pos, this.ch[i], this.fr[i]);
 			++i;
 			--l;
 		}
@@ -440,44 +462,44 @@ eu.Tween.prototype = {
 		}
 	},
 	_whenTweenDone : function(){
-		if(this.tw.then)this.tw.then.start();
-		if(this.tw.loop > -1){
-			if(this.tw.loop == 0){
+		if(this._then)this._then.start();
+		if(this.loop > -1){
+			if(this.loop == 0){
 				this.start();
 			}else{
-				if(--this.tw.repeat > -1){
+				if(--this.repeat > -1){
 					this.start();
 				}
 			}
 		}
-		if(this.tw.yoyo){
+		if(this.yoyo){
 			this._yoyo();
 		}
 	},
 	_yoyo : function(){
-		var tmp = this.tw.fr;
-		this.tw.fr = this.tw.to;
-		this.tw.to = tmp;
+		var tmp = this.fr;
+		this.fr = this.to;
+		this.to = tmp;
 	},
 	_updateTick : function(dir){
-		if(!this._isPlaying && this.tw.initialized){
-			this.tw.dir = dir||1;
+		if(!this._isPlaying && this.initialized){
+			this.dir = dir||1;
 			this.tick();
 			return true;
 		}
 		return false;
 	},
 	_fixValues : function(){
-		if(this.tw.type == "tween"){
-			this.tw.fr = eu._twUtls.fxV(this.target.css, this.tw.props, this.tw.fr);
-			this.tw.to = eu._twUtls.fxV(this.target.css, this.tw.props, this.tw.to);
-			this.tw.ch = eu._twUtls.gCh(this.tw.fr, this.tw.to);
+		if(this.type == "tween" || this.type == 'backgroundPosition'){
+			this.fr = eu._twUtls.fxV(this.target.css, this.props, this.fr);
+			this.to = eu._twUtls.fxV(this.target.css, this.props, this.to);
+			this.ch = eu._twUtls.gCh(this.fr, this.to);
 		}
 	},
 	start : function(){
 		this._fixValues();
 		eu.Ticker.prototype.start.call(this);
-		this.tw.initialized = true;
+		this.initialized = true;
 		this._updateTick();
 		return this;
 	},
@@ -489,7 +511,7 @@ eu.Tween.prototype = {
 	prevFrame : function(){
 		this._time = eu.Math.clamp(--this._time,0,this._duration);
 		this._updateTick(-1);
-		this.tw.dir = 1;
+		this.dir = 1;
 		return this;
 	},
 	rewind : function(){
@@ -514,8 +536,8 @@ eu.Tween.prototype = {
 		return this;
 	},
 	continueTo : function(to, duration){
-		this.tw.fr = this.tw.to;
-		this.tw.to = eu.getAsArray(to);
+		this.fr = this.to;
+		this.to = eu.getAsArray(to);
 		if(duration){
 			this._duration = eu.Math.getFrames(duration);
 		}
@@ -529,24 +551,23 @@ eu.Tween.prototype = {
 	},
 	then : function(t){
 		if(t.isPlaying()) t.stop();
-		return this.tw.then = t;
+		return this._then = t;
 	}
 }
 eu.extend(eu.Ticker, eu.Tween);
 eu.BezierTween = function(id,from,to,control,duration,params){
 	eu.Tween.call(this,id,"translate",from,to,duration,params);
-	this.tw.type = "bezier";
-	this.tw.ctrl = eu.getAsArray(control);
-	this.tw.u = null;
-	this.tw.pts = this.tw.fr.concat(this.tw.ctrl.concat(this.tw.to));
-	this.tw.u = (this.tw.pts.length == 3)?eu.Math.quadraticBezier:eu.Math.cubicBezier;
+	this.type = "bezier";
+	this.ctrl = eu.getAsArray(control);
+	this.pts = this.fr.concat(this.ctrl.concat(this.to));
+	this.u = (this.pts.length == 3)?eu.Math.quadraticBezier:eu.Math.cubicBezier;
 	return this;
 }
 eu.BezierTween.prototype = {
 	_run : function(){
-		this._time += this.tw.dir;
-		this.tw.pos = eu.Math.fixProgress(this._time/this._duration, false);
-		var loc = this.tw.u(this.tw.pos, this.tw.pts, this.tw.e);
+		this._time += this.dir;
+		this.pos = eu.Math.fixProgress(this._time/this._duration, false);
+		var loc = this.u(this.pos, this.pts, this.e);
 		this.target.css.translateX = loc.x;
 		this.target.css.translateY = loc.y;
 		this.target.tick();
@@ -557,20 +578,42 @@ eu.BezierTween.prototype = {
 	}
 }
 eu.extend(eu.Tween, eu.BezierTween);
+eu.BackgroundPositionTween = function(id, to, duration, params){
+	eu.Tween.call(this, id, ['_panX', '_panY'], ['current','current'], to, duration, params);
+	this.type = 'backgroundPosition';
+	return this;
+}
+eu.BackgroundPositionTween.prototype = {
+	_run : function(){
+		this._time += this.dir;
+		this.pos = eu.Math.fixProgress(this._time/this._duration, false);
+		var loc = { 
+			x : eu.Math.dec(this.u(this.pos, this.ch[0], this.fr[0])),
+			y : eu.Math.dec(this.u(this.pos, this.ch[1], this.fr[1]))
+		}
+		this.target.css.backgroundPosition = loc.x + 'px ' + loc.y + 'px';
+		this.target.tick();
+		if(this._onUpdate) this._onUpdate();
+		if(this._checkIfDone()){
+			this._whenTweenDone();
+		}
+	}
+}
+eu.extend(eu.Tween, eu.BackgroundPositionTween);
 eu.ColorTween = function(id,prop,from,to,duration,params){
 	eu.Tween.call(this,id,prop,from,to,duration,params);
-	this.tw.type = "color";
-	this.tw.c1 = eu.Color.hexToRGB(this.tw.fr[0]);
-	this.tw.c2 = eu.Color.hexToRGB(this.tw.to[0]);
-	this.tw.ci = {r:0,g:0,b:0};
-	this.tw.cc = {r:this.tw.c2.r - this.tw.c1.r,g:this.tw.c2.g - this.tw.c1.g,b:this.tw.c2.b - this.tw.c1.b};
+	this.type = "color";
+	this.c1 = eu.Color.hexToRGB(this.fr[0]);
+	this.c2 = eu.Color.hexToRGB(this.to[0]);
+	this.ci = {r:0,g:0,b:0};
+	this.cc = {r:this.c2.r - this.c1.r,g:this.c2.g - this.c1.g,b:this.c2.b - this.c1.b};
 	return this;
 }
 eu.ColorTween.prototype = {
 	_run : function(){
-		this._time += this.tw.dir;
-		this.tw.pos = eu.Math.fixProgress(this._time/this._duration, false);
-		var t = this.tw;
+		this._time += this.dir;
+		this.pos = eu.Math.fixProgress(this._time/this._duration, false);
+		var t = this;
 		t.ci.r = eu.Math.clamp(eu.Math.dec(t.e(t.pos) * t.cc.r + t.c1.r), 0, 255);
 		t.ci.g = eu.Math.clamp(eu.Math.dec(t.e(t.pos) * t.cc.g + t.c1.g), 0, 255);
 		t.ci.b = eu.Math.clamp(eu.Math.dec(t.e(t.pos) * t.cc.b + t.c1.b), 0, 255);
@@ -586,7 +629,7 @@ eu.extend(eu.Tween, eu.ColorTween);
 //Tween Utilities
 eu._twUtls = {
 	fxV : function(o,p,v){//fixValues
-		//this.target.css, this.tw.props, this.tw.fr
+		//this.target.css, this.props, this.fr
 		var l = p.length,r = [], n;
 		for(var i=0; i < l; i++){
 			var x = p[i];
@@ -750,15 +793,18 @@ eu.Math = {
 	rotateTo : function(x,y){return Math.atan2(y, x)}
 }
 //Renderings and particles
+eu.applyCSS = function(elem, prop, value){
+	if(prop.indexOf('translate') + prop.indexOf('scale') + prop.indexOf('rotate') + prop.indexOf('skew') + prop.indexOf('_pan') == -5){
+		elem.style[prop] = value;
+	}
+}
 eu.setCSS = function(elem, valueObj){
 	//if it is NodeList let's apply it to each item
 	if(elem.item){
 		var i=0, l = elem.length;
 		while(l--){
 			for(var k in valueObj){
-				if(k.indexOf('translate') + k.indexOf('scale') + k.indexOf('rotate') + k.indexOf('skew') == -4){
-					elem[i].style[k] = valueObj[k] + (eu.ParticleDB._suffixes[k]||'');
-				}
+				eu.applyCSS(elem[i], k, valueObj[k] + (eu.ParticleDB._suffixes[k]||''));
 			}
 			new eu.Transform(elem[i], valueObj);
 			++i;
@@ -766,9 +812,7 @@ eu.setCSS = function(elem, valueObj){
 	}else if(elem.tagName){
 		//if it is a dom element
 		for(var k in valueObj){
-			if(k.indexOf('translate') + k.indexOf('scale') + k.indexOf('rotate') + k.indexOf('skew') == -4){
-				elem.style[k] = valueObj[k] + (eu.ParticleDB._suffixes[k]||'');
-			}
+			eu.applyCSS(elem, k, valueObj[k] + (eu.ParticleDB._suffixes[k]||''));
 		}
 		new eu.Transform(elem, valueObj);
 	}
@@ -845,7 +889,7 @@ eu.Particle = function(query, params){
 	if(typeof query == 'string'){
 		this.view = document.getElementById(query);
 		if(this.view === null){
-			this.view = document.querySelectorAll(!this.view);
+			this.view = document.querySelectorAll(this.view);
 			if(this.view === null){
 				var fns = [document.getElementsByClassName, document.getElementsByTagName, document.getElementsByName];
 				for(var i = 0, l = fns.length; i < l; i++){
@@ -971,7 +1015,7 @@ eu.ParticleFactory = {
 eu.getParticle = eu.ParticleFactory.getParticle;//shortcut method
 //Timeline
 eu.Timeline = function(channels,params){
-	eu.EventDispatcher.call(this);
+	eu.IPlayer.call(this);
 	this.group = false;
 	this.channels = [];
 	this.index = 0;
@@ -1003,9 +1047,6 @@ eu.Timeline = function(channels,params){
 	}
 }
 eu.Timeline.prototype = {
-	onComplete : function(){},
-	onStop     : function(){},
-	onStart    : function(){},
 	_each : function(foo){
 		var l = this.channels.length;
 		var i = 0;
@@ -1166,7 +1207,7 @@ eu.Timeline.prototype = {
 		return this._mc('fforward');
 	}
 }
-eu.extend(eu.EventDispatcher, eu.Timeline);
+eu.extend(eu.IPlayer, eu.Timeline);
 /* The equations defined here are open source under BSD License.
  * http://www.robertpenner.com/easing_terms_of_use.html (c) 2003 Robert Penner
  * Adapted to single time-based by
@@ -1192,9 +1233,6 @@ eu.Ease = {
 					fn = this.getEase(fn2 + " " + fn3) || this.linear;
 				}
 				return this._easeDict[e] = this.mix(this[fn1],fn);
-				/*function(t){
-					return eu.Ease[fn1](fn(t));
-				}*/
 			}else if(fn1 == "wave" || fn1 == "pulse" || fn1 == "blink" || fn1 == "stepped" || fn1 == "pow"){
 				x = parseInt(v[1]) || 2;
 				return this._easeDict[e] = function(t){
