@@ -90,7 +90,10 @@ eu = {
 				}
 			}
 		}
-		return new eu.Tween(id,prop,from,to,duration,params).start();
+		if(eu._twUtls._tAP){
+			return new eu.Tween(id,prop,from,to,duration,params).start();
+		}
+		return new eu.Tween(id,prop,from,to,duration,params);
 	},
 	moveTo : function(id,x,y,duration,params){
 		return eu.tweenTo(id,["translateX","translateY"], ["current","current"], [x,y], duration, params);
@@ -123,6 +126,9 @@ eu = {
 	fadeOut: function(id,duration,params){
 		duration = duration || 'slow';
 		return eu.tweenTo(id,"opacity",1,0,duration,params);
+	},
+	bgPositionTo : function(id,to,duration,params){
+		return new eu.BackgroundPositionTween(id,['current','current'],to,duration,params).start();
 	},
 	bgColorTo : function(id,from,to,duration,params){
 		return new eu.ColorTween(id,"backgroundColor",from,to,duration,params).start();
@@ -578,8 +584,8 @@ eu.BezierTween.prototype = {
 	}
 }
 eu.extend(eu.Tween, eu.BezierTween);
-eu.BackgroundPositionTween = function(id, to, duration, params){
-	eu.Tween.call(this, id, ['_panX', '_panY'], ['current','current'], to, duration, params);
+eu.BackgroundPositionTween = function(id, from, to, duration, params){
+	eu.Tween.call(this, id, ['_bgX', '_bgY'], from, to, duration, params);
 	this.type = 'backgroundPosition';
 	return this;
 }
@@ -587,11 +593,9 @@ eu.BackgroundPositionTween.prototype = {
 	_run : function(){
 		this._time += this.dir;
 		this.pos = eu.Math.fixProgress(this._time/this._duration, false);
-		var loc = { 
-			x : eu.Math.dec(this.u(this.pos, this.ch[0], this.fr[0])),
-			y : eu.Math.dec(this.u(this.pos, this.ch[1], this.fr[1]))
-		}
-		this.target.css.backgroundPosition = loc.x + 'px ' + loc.y + 'px';
+		this.target.css._bgX = eu.Math.dec(this.u(this.pos, this.ch[0], this.fr[0]));
+		this.target.css._bgY = eu.Math.dec(this.u(this.pos, this.ch[1], this.fr[1]));
+		this.target.css.backgroundPosition = this.target.css._bgX + 'px ' + this.target.css._bgY + 'px';
 		this.target.tick();
 		if(this._onUpdate) this._onUpdate();
 		if(this._checkIfDone()){
@@ -628,6 +632,7 @@ eu.ColorTween.prototype = {
 eu.extend(eu.Tween, eu.ColorTween);
 //Tween Utilities
 eu._twUtls = {
+	_tAP : true,
 	fxV : function(o,p,v){//fixValues
 		//this.target.css, this.props, this.fr
 		var l = p.length,r = [], n;
@@ -661,6 +666,9 @@ eu._twUtls = {
 		return val;
 	},
 }
+eu.setAutoPlay = function(val){
+	eu._twUtls._tAP = val;
+};
 //COLOR
 eu.Color = {
 	setBrightness : function(obj, value){
@@ -700,6 +708,7 @@ eu.Math = {
 	TWO_PI : Math.PI * 2,
 	HALF_PI : Math.PI / 2,
 	CIRC : 360,
+	aleatory : Math.random,
 	dec : function(n,x){
 		x = x||1000;
 		return Math.round(n*x)/x;
@@ -741,15 +750,15 @@ eu.Math = {
 	},
 	random : function(min, max){
 		if(arguments.length == 1){
-			return Math.random() * min;
+			return eu.Math.aleatory() * min;
 		}
-		return Math.random() * (max - min) + min;
+		return eu.Math.aleatory() * (max - min) + min;
 	},
 	randomInt : function(min, max){
 		if(arguments.length == 1){
-			return Math.floor(Math.random() * (1 + min));
+			return Math.floor(eu.Math.aleatory() * (1 + min));
 		}
-		return Math.floor(Math.random() * (1 + max - min)) + min;
+		return Math.floor(eu.Math.aleatory() * (1 + max - min)) + min;
 	},
 	clamp : function(value, min, max){
 		return Math.min(Math.max(value,min),max);
@@ -779,7 +788,7 @@ eu.Math = {
 	chance : function(chance, type){
 		var c = chance ? chance : 0.5;
 		var t = (type == -1) ? -1 : 0;
-		return (Math.random() > c)? t : 1;
+		return (eu.Math.aleatory() > c)? t : 1;
 	},
 	center : function(width, container){
 		return (container - width)/2;
@@ -793,9 +802,19 @@ eu.Math = {
 	rotateTo : function(x,y){return Math.atan2(y, x)}
 }
 //Renderings and particles
+eu.cssPlugin = {
+
+}
+eu.cssSetSuffix = function(suffix,val){
+	eu.ParticleDB._suffixes[suffix] = val;
+}
 eu.applyCSS = function(elem, prop, value){
-	if(prop.indexOf('translate') + prop.indexOf('scale') + prop.indexOf('rotate') + prop.indexOf('skew') + prop.indexOf('_pan') == -5){
-		elem.style[prop] = value;
+	if(prop.indexOf('translate') + prop.indexOf('scale') + prop.indexOf('rotate') + prop.indexOf('skew') + prop.indexOf('_bg') == -5){
+		if(!eu.cssPlugin[prop]){
+			elem.style[prop] = value;
+		}else{
+			eu.cssPlugin[prop](elem,value);
+		}
 	}
 }
 eu.setCSS = function(elem, valueObj){
@@ -944,8 +963,7 @@ eu.ParticleDB = {
 	_dict : {},
 	_nodes : [],
 	_particles : [],
-	_suffixes : {top:'px',left:'px',width:'px',height:'px'},
-	setSuffix : function(suffix,val){this._suffixes[suffix] = val}
+	_suffixes : {top:'px',left:'px',width:'px',height:'px'}
 }
 eu.ParticleFactory = {
 	//a general method where you can pass an string, a dom element, a node list or HTML Collection, or use it to build a particle and its view
@@ -1437,7 +1455,7 @@ eu.Ease = {
 		return (-Math.cos(t*Math.PI*(9*t))/2) + 0.5;
 	},
 	flicker : function(t){
-		var t = t + (Math.random()-0.5)/5;
+		var t = t + (eu.Math.aleatory()-0.5)/5;
 		return eu.Ease.sine(t < 0 ? 0 : t > 1 ? 1 : t);
 	},
 	slowMotion : function(t){
@@ -1456,7 +1474,7 @@ eu.Ease = {
 		if(t >= 1){
 			return 1;
 		} 
-		return Math.random() * t;
+		return eu.Math.aleatory() * t;
 	},
 	mirror : function(t){
 		return Math.sin( Math.PI * t );
@@ -1572,9 +1590,6 @@ eu.Follow = function(elements,loc,ease,spring,alignTo,duration,params){
 	return new eu.ParticleSystem(el,i,m,r,duration,params).start();
 }
 eu.Oscillate = function(elements, prop, min, max, freq, amp, offset, duration, params){
-	freq = (freq!=undefined)?1/freq:0.01;
-	offset = (offset||0);
-	amp = amp||1;
 	var i = function(index){
 		if(!this.data.Oscillate){
 			this.data.Oscillate = {};
@@ -1583,17 +1598,45 @@ eu.Oscillate = function(elements, prop, min, max, freq, amp, offset, duration, p
 			center : (max+min)/2,
 			range : max-min,
 			speed : 0,
-			freq : freq,
-			amp : amp,
-			offset : offset * index
+			freq : (freq!=undefined)?1/freq:0.01,
+			amp : (amp||1),
+			prop : prop,
+			offset : ((freq!=undefined)?1/freq:0.01) * index
 		}
 	},
 	m = function(){
 		var td = this.data.Oscillate[prop], v = td.speed + td.offset;
 		v -= (v|0);
-		this.css[prop] = Math.sin(6.283185307179586 * v) * td.range/2 * td.amp + td.center;
+		this.css[td.prop] = Math.sin(6.283185307179586 * v) * td.range/2 * td.amp + td.center;
 		td.speed += td.freq;
 		td.speed -= (td.speed|0);
+		//console.log();
+	},
+	r = function(){},
+	el = eu.getParticle(elements);
+	return new eu.ParticleSystem(el,i,m,r,duration,params).start();
+}
+eu.Vibrate = function(elements, prop, min, max, friction, spring, duration, params){
+	var i = function(index){
+		if(!this.data.Vibrate){
+			this.data.Vibrate = {};
+		}
+		this.css[prop] = eu.getInitialValue(prop);
+		this.data.Vibrate[prop] = {
+			range : max - min,
+			min : min,
+			prop : prop,
+			friction : friction || 0.1,
+			spring : spring || 0.9,
+			vel : 0,
+			goal : 0
+		}
+	},
+	m = function(){
+		var td = this.data.Vibrate[prop]; 
+		td.goal = td.min + (eu.Math.aleatory() * td.range);
+		td.vel = td.vel * td.spring + (td.goal - this.css[td.prop]) * td.friction;
+		this.css[td.prop] += td.vel;
 	},
 	r = function(){},
 	el = eu.getParticle(elements);
