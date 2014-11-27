@@ -561,12 +561,23 @@ eu.Tween.prototype = {
 	}
 }
 eu.extend(eu.Ticker, eu.Tween);
+  /**
+    * generic bezier method for animating x|y coordinates
+    * minimum of 2 points required (start and end).
+    * first point start, last point end
+    * additional control points are optional (but why else would you use this anyway ;)
+    * @param points: array containing control points
+       [[0, 0], [100, 200], [200, 100]]
+    * @param pos: current be(tween) position represented as float  0 - 1
+    * @return [x, y]
+    */
 eu.BezierTween = function(id,from,to,control,duration,params){
 	eu.Tween.call(this,id,"translate",from,to,duration,params);
 	this.type = "bezier";
 	this.ctrl = eu.getAsArray(control);
 	this.pts = this.fr.concat(this.ctrl.concat(this.to));
-	this.u = (this.pts.length == 3)?eu.Math.quadraticBezier:eu.Math.cubicBezier;
+	this.u = (this.pts.length < 5)?(this.pts.length == 3)?eu.Math.quadraticBezier:eu.Math.cubicBezier:eu.Math.bezier;//;
+	console.log(this.pts.length);
 	return this;
 }
 eu.BezierTween.prototype = {
@@ -713,6 +724,19 @@ eu.Math = {
 		x = x||1000;
 		return Math.round(n*x)/x;
 	},
+	bezier : function(time, p, ease) { // points, pos
+	  var n = p.length, r = [], i, j, t = (time < 1)? ease(time): ease(1);
+	  for (i = 0; i < n; ++i) {
+	    r[i] = [p[i].x, p[i].y]
+	  }
+	  for (j = 1; j < n; ++j) {
+	    for (i = 0; i < n - j; ++i) {
+	      r[i].x = (1 - t) * r[i].x + t * r[parseInt(i + 1, 10)].x;
+	      r[i].y = (1 - t) * r[i].y + t * r[parseInt(i + 1, 10)].y;
+	   }
+	  }
+	  return {x:r[0].x,y:r[0].y}
+	},
 	cubicBezier : function(time,p,ease){
 		var p0 = p[0], p1 = p[1], p2 = p[2], p3 = p[3];
 		var e = ease || function(k){return k * k * ( 3 - 2 * k )}, t = (time < 1)? e(time): e(1);
@@ -803,7 +827,11 @@ eu.Math = {
 }
 //Renderings and particles
 eu.cssPlugin = {
-
+	/*
+	Add functions that receives a dom element and a value for it
+	example:
+	BNNR.left = function (elem,val){ elem.style["left"] = val + "px"; }
+	*/
 }
 eu.cssSetSuffix = function(suffix,val){
 	eu.ParticleDB._suffixes[suffix] = val;
@@ -816,6 +844,12 @@ eu.applyCSS = function(elem, prop, value){
 			eu.cssPlugin[prop](elem,value);
 		}
 	}
+}
+eu.resetCSS = function(elem){
+	elem.style.WebkitTransform = ''; 
+	elem.style.msTransform = ''; 
+	elem.style.transform = '';
+	elem.style = '';
 }
 eu.setCSS = function(elem, valueObj){
 	//if it is NodeList let's apply it to each item
@@ -943,6 +977,9 @@ eu.Particle.prototype = {
 			this.css.translateY = this.css.translate.y;
 			delete this.css.translate;
 		}
+	},
+	'reset' : function(){
+		eu.resetCSS(this.view);
 	},
 	'style' : function(prop, value){
 		//SET
