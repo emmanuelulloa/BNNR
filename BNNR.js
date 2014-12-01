@@ -894,8 +894,7 @@ eu.getInitialValue = function(t,v){//getInitialValue
 		if(typeof v == 'number'){
 			return v;
 		}
-	}
-	if(t == 'opacity' || t.indexOf('scale') != -1) return 1;
+	}else if(t == 'opacity' || t.indexOf('scale') != -1) return 1;
 	return 0;
 }
 eu.Transform = function(elem,obj){
