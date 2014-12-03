@@ -1151,10 +1151,15 @@ eu.Timeline.prototype = {
 		if(!this._longestTicker){
 			this._longestTicker = this._getLongest();
 		}else{
-			this._longestTicker.removeListener('onComplete',this.onComplete);
+			this._longestTicker.removeListener('onComplete',this._onComplete);
 			this._longestTicker = this._getLongest();
 		}
-		this._longestTicker.addListener('onComplete',this.onComplete);
+		var delegate = this;
+		this._onComplete = function(){
+			if(delegate.onComplete) delegate.onComplete();
+			delegate.dispatchEvent('onComplete');
+		};
+		this._longestTicker.addListener('onComplete',this._onComplete);
 	},
 	_add : function(t){
 		if(typeof t === 'number'){
