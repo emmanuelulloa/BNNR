@@ -283,7 +283,7 @@ eu.AbstractTicker.prototype = {
 	}
 }
 eu.extend(eu.IPlayer, eu.AbstractTicker);
-eu.Delay = function(duration,fn,args,scope){
+eu.Delay = function(duration,fn,args,scope,autoPlay){
 	eu.AbstractTicker.call(this);
 	this._fn = fn;
 	this._args = args||[];
@@ -291,7 +291,6 @@ eu.Delay = function(duration,fn,args,scope){
 	this._duration = duration;
 	this._time = eu.Math.getFrames(duration);
 	this._count = this._time;
-	this.start();
 }
 eu.Delay.prototype = {
 	rewind : function (){this._count = this._time;},
@@ -577,7 +576,6 @@ eu.BezierTween = function(id,from,to,control,duration,params){
 	this.ctrl = eu.getAsArray(control);
 	this.pts = this.fr.concat(this.ctrl.concat(this.to));
 	this.u = (this.pts.length < 5)?(this.pts.length == 3)?eu.Math.quadraticBezier:eu.Math.cubicBezier:eu.Math.bezier;//;
-	console.log(this.pts.length);
 	return this;
 }
 eu.BezierTween.prototype = {
@@ -1651,7 +1649,6 @@ eu.Oscillate = function(elements, prop, min, max, freq, amp, offset, duration, p
 		this.css[td.prop] = Math.sin(6.283185307179586 * v) * td.range/2 * td.amp + td.center;
 		td.speed += td.freq;
 		td.speed -= (td.speed|0);
-		//console.log();
 	},
 	r = function(){},
 	el = eu.getParticle(elements);
