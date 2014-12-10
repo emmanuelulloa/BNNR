@@ -92,6 +92,7 @@ Position : {
 		var t = (typeof DOMElement == "string")?document.getElementById(DOMElement):DOMElement;
 		t.style.border = 'none';
 		t.parentNode.onmousedown = null;
+		BNNR_DEV.target = null;
 	},
 	register : function(DOMElement,opts){
 		this._t = (typeof DOMElement == "string")?document.getElementById(DOMElement):DOMElement;
@@ -219,8 +220,8 @@ Position : {
 		var i = BNNR_DEV.Position.position.image.split("/");
 		var name = i[i.length-1];
 		var cname = (name)? "#" + name.split(".")[0] : ".myClass";
-		var left = (parseInt(this._t.style.left)) - this._of.x;
-		var top = (parseInt(this._t.style.top)) - this._of.y;
+		var left = (parseInt(this._t.style.left)) - this._of.x + 3;
+		var top = (parseInt(this._t.style.top)) - this._of.y + 3;
 		var s = cname + " {\rbackground-image:url('images/"+name+"');\rbackground-repeat: no-repeat;\rposition:absolute;\rdisplay:block;\rwidth:"+this.position.width+"px;\rheight:"+this.position.height+"px;\rleft: "+left+"px;\rtop: "+top+"px;\r}";
 		return s;
 	}
@@ -287,8 +288,15 @@ Transform : {
 	getTransform:function(){
 		return "scale(" + BNNR_DEV.Transform.dec(BNNR_DEV.Transform.transform.scale) + ") rotate(" + BNNR_DEV.Transform.transform.rotate + "deg)";
 	},
+	unregister : function(DOMElement){
+		var t = (typeof DOMElement == "string")?document.getElementById(DOMElement):DOMElement;
+		t.style.border = 'none';
+		t.parentNode.onmousedown = null;
+		BNNR_DEV.target = null;
+	},
 	register : function(DOMElement,opts){
 		this._t = (typeof DOMElement == "string")?document.getElementById(DOMElement):DOMElement;
+		BNNR_DEV.target = this._t;
 		this._t.parentNode.onmousedown = function(event){
 			BNNR_DEV.Transform.position.width = BNNR_DEV.Transform._t.width || parseInt(BNNR_DEV.CSS.getCSS(BNNR_DEV.Transform._t, "width"));
 			BNNR_DEV.Transform.position.height = BNNR_DEV.Transform._t.height || parseInt(BNNR_DEV.CSS.getCSS(BNNR_DEV.Transform._t, "height"));
@@ -389,25 +397,41 @@ loadImage : function(event,files){
 	container.appendChild(img);
 	BNNR_DEV.go(img.id,'Position');
 },
-UI : function(){
-	var container = document.createElement('DIV'),
-		size = window.prompt('What is the size of the container?','800x600').split('x'),
-		w = size[0],
-		h = size[1];
-	container.style.border = '1px solid black'
-	container.style.overflow = 'hidden';
-	container.style.display = 'block'; 
-	container.style.width = w + 'px';
-	container.style.height = h + 'px';
-	container.id = 'container';
+START : function(){
+	//create the UI
 	var myUI = document.createElement('DIV');
 	myUI.id = 'myUI';
+	myUI.style.backgroundColor = "#FFF";
+	myUI.style.padding = "10px";
+	myUI.style.margin = "5px";
+	myUI.style.width = "400px"
+	myUI.style.border = "1px solid #666";
+	myUI.style.borderRadius = "10px";
 	myUI.style.align = 'right';
 	myUI.style.position = 'relative';
 	myUI.style.display = 'block';
 	myUI.style.clear = 'both';
-	myUI.innerHTML = '<form id="myForm"><textarea id="output_txt" rows="8" cols="50"></textarea><br /><input type="file" onchange="BNNR_DEV.loadImage(event,this.files)" /></form>';
- 	document.body.appendChild(container);
+	myUI.style.fontFamily = "Arial, Helvetica, sans-serif";
+	myUI.innerHTML = '<h1 style="font-size:14px;font-weight:bold;">LAYOUT DESIGNER</h1><form id="BNNR_DEV_FORM"><label>Drop image here:</label><br /><input type="file" style="width:320px;margin:5px;padding:20px;border:2px dashed #999;" onchange="BNNR_DEV.loadImage(event,this.files)" /><br /><label>Get the code:</label><br /><textarea id="output_txt" style="font-family:courier, mono;" rows="5" cols="50" onclick="this.select();"></textarea></form>';
+ 	//if there is no container it will request one.
+ 	var myContainerClass = "";
+ 	if(document.getElementById('container') === null){
+		var container = document.createElement('DIV'),
+			size = window.prompt('What is the size of the container?','640x480').split('x'),
+			w = size[0],
+			h = size[1];
+		container.style.border = '1px solid black'
+		container.style.overflow = 'hidden';
+		container.style.display = 'block'; 
+		container.style.width = w + 'px';
+		container.style.height = h + 'px';
+		container.id = 'container';	
+		document.body.appendChild(container);
+		myContainerClass = "#container{\rbackground-image: url('images/BG.jpg');\rborder: 1px solid black;\rdisplay:block;\roverflow:hidden\rwidth:"+w+"px;\rheight:"+h+"px;\r}";
+	}
  	document.body.appendChild(myUI);
+ 	if(myContainerClass != ""){
+ 		document.getElementById('output_txt').value = myContainerClass;
+ 	}
 }
 };
